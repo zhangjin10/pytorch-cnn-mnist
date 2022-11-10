@@ -10,11 +10,9 @@ import io
 import re
 import os
 
-
 app = Flask(__name__)
 app.config['ENV'] = 'development'
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1
-
 
 model = CNN()
 model.load_state_dict(torch.load('model.pt', map_location=torch.device('cpu')))
@@ -22,11 +20,10 @@ model.eval()
 
 
 def transform_image(image_bytes):
-    my_transforms = transforms.Compose([
-        transforms.Resize(28),
-        transforms.Grayscale(),
-        transforms.ToTensor()
-    ])
+    my_transforms = transforms.Compose(
+        [transforms.Resize(28),
+         transforms.Grayscale(),
+         transforms.ToTensor()])
     image = Image.open(io.BytesIO(image_bytes))
     return my_transforms(image).unsqueeze(0)
 
@@ -35,7 +32,7 @@ def get_prediction(image_bytes):
     tensor = transform_image(image_bytes=image_bytes)
     with torch.no_grad():
         output = model.forward(tensor)
-        confidence = F.softmax(output, 1).max()*100
+        confidence = F.softmax(output, 1).max() * 100
         output = output.argmax(1)
         return output.item(), f'{confidence.item():.2f}%'
 
